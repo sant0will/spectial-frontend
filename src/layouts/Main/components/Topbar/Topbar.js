@@ -41,7 +41,7 @@ const Topbar = props => {
         </RouterLink>
         <div className={classes.flexGrow} />
         <Hidden mdDown>
-          <IconButton color="inherit">
+          {/* <IconButton color="inherit">
             <Badge
               badgeContent={notifications.length}
               color="primary"
@@ -49,10 +49,13 @@ const Topbar = props => {
             >
               <NotificationsIcon />
             </Badge>
-          </IconButton>
+          </IconButton> */}
           <IconButton
             className={classes.signOutButton}
             color="inherit"
+            onClick={() => {
+              console.log('logout');
+            }}
           >
             <InputIcon />
           </IconButton>

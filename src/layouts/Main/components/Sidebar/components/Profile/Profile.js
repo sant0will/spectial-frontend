@@ -22,14 +22,16 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const Profile = props => {
-  const { className, ...rest } = props;
+  const { className, user: u, ...rest } = props;
+
+  console.log(u)
 
   const classes = useStyles();
 
   const user = {
-    name: 'Shen Zhi',
-    avatar: '/images/avatars/avatar_11.png',
-    bio: 'Brain Director'
+    name: u.user.name,
+    avatar: '/images/avatars/avatar_1.png',
+    bio: u.role === 'teacher' ? "Professor" : "Aluno"
   };
 
   return (

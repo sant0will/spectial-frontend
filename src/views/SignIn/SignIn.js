@@ -2,18 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import validate from 'validate.js';
+import api from '../../services/api';
 import { makeStyles } from '@material-ui/styles';
 import {
   Grid,
   Button,
-  IconButton,
   TextField,
   Link,
-  Typography
+  Typography,
+  Snackbar,
+  IconButton
 } from '@material-ui/core';
-import ArrowBackIcon from '@material-ui/icons/ArrowBack';
-
-import { Facebook as FacebookIcon, Google as GoogleIcon } from 'icons';
+import CloseIcon from '@material-ui/icons/Close';
 
 const schema = {
   email: {
@@ -130,6 +130,8 @@ const SignIn = props => {
 
   const classes = useStyles();
 
+  const [open, setOpen] = useState(false);
+  const [messageError, setMessageError] = useState("");
   const [formState, setFormState] = useState({
     isValid: false,
     values: {},
@@ -147,8 +149,8 @@ const SignIn = props => {
     }));
   }, [formState.values]);
 
-  const handleBack = () => {
-    history.goBack();
+  const handleClose = () => {
+    setOpen(false);
   };
 
   const handleChange = event => {
@@ -170,10 +172,29 @@ const SignIn = props => {
     }));
   };
 
-  const handleSignIn = event => {
+  async function handleSignIn(event) {
     event.preventDefault();
-    history.push('/');
-  };
+
+    await api.post('/auth/authenticate', {
+      email: formState.values.email,
+      password: formState.values.password,
+    }).then((res) => {
+      const { status, data } = res;
+
+      if (status === 200) {
+        localStorage.setItem('auth-token', data.token);
+
+        history.push("/dashboard", { user: data });
+      }
+    }).catch((e) => {
+      const { status, data } = e.response;
+
+      if (status === 400) {
+        setMessageError(data.error);
+        setOpen(true);
+      }
+    })
+  }
 
   const hasError = field =>
     formState.touched[field] && formState.errors[field] ? true : false;
@@ -195,23 +216,8 @@ const SignIn = props => {
                 className={classes.quoteText}
                 variant="h1"
               >
-                Hella narwhal Cosby sweater McSweeney's, salvia kitsch before
-                they sold out High Life.
+                Hoje seu dia será especial. Muito melhor que ontem e um aprendizado para amanhã. Hoje você tem a oportunidade de fazer as coisas diferentes.
               </Typography>
-              <div className={classes.person}>
-                <Typography
-                  className={classes.name}
-                  variant="body1"
-                >
-                  Takamaru Ayako
-                </Typography>
-                <Typography
-                  className={classes.bio}
-                  variant="body2"
-                >
-                  Manager at inVision
-                </Typography>
-              </div>
             </div>
           </div>
         </Grid>
@@ -223,9 +229,30 @@ const SignIn = props => {
         >
           <div className={classes.content}>
             <div className={classes.contentHeader}>
-              <IconButton onClick={handleBack}>
-                <ArrowBackIcon />
-              </IconButton>
+              <Snackbar
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'left',
+                }}
+                open={open}
+                autoHideDuration={6000}
+                onClose={handleClose}
+                ContentProps={{
+                  'aria-describedby': 'message-id',
+                }}
+                message={<span id="message-id">{messageError}</span>}
+                action={[
+                  <IconButton
+                    key="close"
+                    aria-label="close"
+                    color="inherit"
+                    className={classes.close}
+                    onClick={handleClose}
+                  >
+                    <CloseIcon />
+                  </IconButton>,
+                ]}
+              />
             </div>
             <div className={classes.contentBody}>
               <form
@@ -236,48 +263,13 @@ const SignIn = props => {
                   className={classes.title}
                   variant="h2"
                 >
-                  Sign in
+                  Entre
                 </Typography>
                 <Typography
                   color="textSecondary"
                   gutterBottom
                 >
-                  Sign in with social media
-                </Typography>
-                <Grid
-                  className={classes.socialButtons}
-                  container
-                  spacing={2}
-                >
-                  <Grid item>
-                    <Button
-                      color="primary"
-                      onClick={handleSignIn}
-                      size="large"
-                      variant="contained"
-                    >
-                      <FacebookIcon className={classes.socialIcon} />
-                      Login with Facebook
-                    </Button>
-                  </Grid>
-                  <Grid item>
-                    <Button
-                      onClick={handleSignIn}
-                      size="large"
-                      variant="contained"
-                    >
-                      <GoogleIcon className={classes.socialIcon} />
-                      Login with Google
-                    </Button>
-                  </Grid>
-                </Grid>
-                <Typography
-                  align="center"
-                  className={classes.sugestion}
-                  color="textSecondary"
-                  variant="body1"
-                >
-                  or login with email address
+                  Faça o login com e-mail e senha
                 </Typography>
                 <TextField
                   className={classes.textField}
@@ -286,7 +278,7 @@ const SignIn = props => {
                   helperText={
                     hasError('email') ? formState.errors.email[0] : null
                   }
-                  label="Email address"
+                  label="E-mail"
                   name="email"
                   onChange={handleChange}
                   type="text"
@@ -300,7 +292,7 @@ const SignIn = props => {
                   helperText={
                     hasError('password') ? formState.errors.password[0] : null
                   }
-                  label="Password"
+                  label="Senha"
                   name="password"
                   onChange={handleChange}
                   type="password"
@@ -316,19 +308,20 @@ const SignIn = props => {
                   type="submit"
                   variant="contained"
                 >
-                  Sign in now
+                  Entrar
                 </Button>
                 <Typography
                   color="textSecondary"
                   variant="body1"
                 >
-                  Don't have an account?{' '}
+
+                  Não possui conta?{' '}
                   <Link
                     component={RouterLink}
                     to="/sign-up"
                     variant="h6"
                   >
-                    Sign up
+                    Faça agora mesmo
                   </Link>
                 </Typography>
               </form>

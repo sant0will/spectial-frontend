@@ -24,6 +24,7 @@ const useStyles = makeStyles(theme => ({
 
 const Main = props => {
   const { children } = props;
+  const { user } = children.props.history.location.state;
 
   const classes = useStyles();
   const theme = useTheme();
@@ -52,13 +53,14 @@ const Main = props => {
     >
       <Topbar onSidebarOpen={handleSidebarOpen} />
       <Sidebar
+        user={user}
         onClose={handleSidebarClose}
         open={shouldOpenSidebar}
         variant={isDesktop ? 'persistent' : 'temporary'}
       />
       <main className={classes.content}>
         {children}
-        <Footer />
+        {/* <Footer /> */}
       </main>
     </div>
   );

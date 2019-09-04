@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link as RouterLink, withRouter } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import validate from 'validate.js';
+import api from '../../services/api';
 import { makeStyles } from '@material-ui/styles';
 import {
   Grid,
@@ -9,11 +10,14 @@ import {
   IconButton,
   TextField,
   Link,
-  FormHelperText,
-  Checkbox,
-  Typography
+  Typography,
+  Snackbar
 } from '@material-ui/core';
+import CloseIcon from '@material-ui/icons/Close';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import Radio from '@material-ui/core/Radio';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 
 const schema = {
   firstName: {
@@ -40,10 +44,6 @@ const schema = {
     length: {
       maximum: 128
     }
-  },
-  policy: {
-    presence: { allowEmpty: false, message: 'is required' },
-    checked: true
   }
 };
 
@@ -144,7 +144,9 @@ const SignUp = props => {
   const { history } = props;
 
   const classes = useStyles();
-
+  const [open, setOpen] = useState(false);
+  const [messageError, setMessageError] = useState("");
+  const [value, setValue] = React.useState('teacher');
   const [formState, setFormState] = useState({
     isValid: false,
     values: {},
@@ -181,13 +183,45 @@ const SignUp = props => {
     }));
   };
 
+  const handleClose = () => {
+    setOpen(false);
+  };
+
+  function handleChangeRadio(event) {
+    setValue(event.target.value);
+  }
+
+
   const handleBack = () => {
     history.goBack();
   };
 
-  const handleSignUp = event => {
+  async function handleSignUp(event) {
     event.preventDefault();
-    history.push('/');
+
+    console.log(formState.values)
+
+    await api.post('/auth/register', {
+      name: formState.values.firstName + " " + formState.values.lastName,
+      email: formState.values.email,
+      password: formState.values.password,
+      role: formState.values.policy ? 'teacher' : 'student',
+    }).then((res) => {
+      const { status, data } = res;
+
+      if (status === 200) {
+        localStorage.setItem('auth-token', data.token);
+
+        history.push("/dashboard", { user: data });
+      }
+    }).catch((e) => {
+      const { status, data } = e.response;
+
+      if (status === 400) {
+        setMessageError(data.error);
+        setOpen(true);
+      }
+    })
   };
 
   const hasError = field =>
@@ -210,23 +244,8 @@ const SignUp = props => {
                 className={classes.quoteText}
                 variant="h1"
               >
-                Hella narwhal Cosby sweater McSweeney's, salvia kitsch before
-                they sold out High Life.
+                Hoje seu dia será especial. Muito melhor que ontem e um aprendizado para amanhã. Hoje você tem a oportunidade de fazer as coisas diferentes.
               </Typography>
-              <div className={classes.person}>
-                <Typography
-                  className={classes.name}
-                  variant="body1"
-                >
-                  Takamaru Ayako
-                </Typography>
-                <Typography
-                  className={classes.bio}
-                  variant="body2"
-                >
-                  Manager at inVision
-                </Typography>
-              </div>
             </div>
           </div>
         </Grid>
@@ -235,9 +254,34 @@ const SignUp = props => {
           item
           lg={7}
           xs={12}
+          sm={12}
         >
           <div className={classes.content}>
             <div className={classes.contentHeader}>
+              <Snackbar
+                anchorOrigin={{
+                  vertical: 'bottom',
+                  horizontal: 'left',
+                }}
+                open={open}
+                autoHideDuration={6000}
+                onClose={handleClose}
+                ContentProps={{
+                  'aria-describedby': 'message-id',
+                }}
+                message={<span id="message-id">{messageError}</span>}
+                action={[
+                  <IconButton
+                    key="close"
+                    aria-label="close"
+                    color="inherit"
+                    className={classes.close}
+                    onClick={handleClose}
+                  >
+                    <CloseIcon />
+                  </IconButton>,
+                ]}
+              />
               <IconButton onClick={handleBack}>
                 <ArrowBackIcon />
               </IconButton>
@@ -251,13 +295,13 @@ const SignUp = props => {
                   className={classes.title}
                   variant="h2"
                 >
-                  Create new account
+                  Crie uma nova conta
                 </Typography>
                 <Typography
                   color="textSecondary"
                   gutterBottom
                 >
-                  Use your email to create new account
+                  Use seu email para criar a conta
                 </Typography>
                 <TextField
                   className={classes.textField}
@@ -266,7 +310,7 @@ const SignUp = props => {
                   helperText={
                     hasError('firstName') ? formState.errors.firstName[0] : null
                   }
-                  label="First name"
+                  label="Nome"
                   name="firstName"
                   onChange={handleChange}
                   type="text"
@@ -280,7 +324,7 @@ const SignUp = props => {
                   helperText={
                     hasError('lastName') ? formState.errors.lastName[0] : null
                   }
-                  label="Last name"
+                  label="Sobrenome"
                   name="lastName"
                   onChange={handleChange}
                   type="text"
@@ -294,7 +338,7 @@ const SignUp = props => {
                   helperText={
                     hasError('email') ? formState.errors.email[0] : null
                   }
-                  label="Email address"
+                  label="E-mail"
                   name="email"
                   onChange={handleChange}
                   type="text"
@@ -308,7 +352,7 @@ const SignUp = props => {
                   helperText={
                     hasError('password') ? formState.errors.password[0] : null
                   }
-                  label="Password"
+                  label="Senha"
                   name="password"
                   onChange={handleChange}
                   type="password"
@@ -316,35 +360,21 @@ const SignUp = props => {
                   variant="outlined"
                 />
                 <div className={classes.policy}>
-                  <Checkbox
-                    checked={formState.values.policy || false}
-                    className={classes.policyCheckbox}
-                    color="primary"
-                    name="policy"
-                    onChange={handleChange}
-                  />
-                  <Typography
-                    className={classes.policyText}
-                    color="textSecondary"
-                    variant="body1"
-                  >
-                    I have read the{' '}
-                    <Link
-                      color="primary"
-                      component={RouterLink}
-                      to="#"
-                      underline="always"
-                      variant="h6"
-                    >
-                      Terms and Conditions
-                    </Link>
-                  </Typography>
+                  <RadioGroup aria-label="position" name="position" value={value} onChange={handleChangeRadio} row>
+                  <FormControlLabel
+                      value="teacher"
+                      control={<Radio color="primary" />}
+                      label="Professor"
+                      labelPlacement="end"
+                    />
+                    <FormControlLabel
+                      value="student"
+                      control={<Radio color="primary" />}
+                      label="Estudante"
+                      labelPlacement="end"
+                    />
+                  </RadioGroup>
                 </div>
-                {hasError('policy') && (
-                  <FormHelperText error>
-                    {formState.errors.policy[0]}
-                  </FormHelperText>
-                )}
                 <Button
                   className={classes.signUpButton}
                   color="primary"
@@ -354,19 +384,19 @@ const SignUp = props => {
                   type="submit"
                   variant="contained"
                 >
-                  Sign up now
+                  Enviar
                 </Button>
                 <Typography
                   color="textSecondary"
                   variant="body1"
                 >
-                  Have an account?{' '}
+                  Já possui conta?{' '}
                   <Link
                     component={RouterLink}
                     to="/sign-in"
                     variant="h6"
                   >
-                    Sign in
+                    Entre
                   </Link>
                 </Typography>
               </form>
