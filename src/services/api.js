@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-   baseURL: 'https://spectial.herokuapp.com' 
+   baseURL: 'https://spectialbackend.herokuapp.com/' 
 });
 
 export default api;
