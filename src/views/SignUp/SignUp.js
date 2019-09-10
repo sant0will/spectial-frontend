@@ -244,8 +244,8 @@ const SignUp = props => {
                 className={classes.quoteText}
                 variant="h1"
               >
-                Hoje seu dia será especial. Muito melhor que ontem e um aprendizado para amanhã. Hoje você tem a oportunidade de fazer as coisas diferentes.
-              </Typography>
+                Hoje será um dia especial, você tem a oportunidade de fazer as coisas diferentes.
+               </Typography>
             </div>
           </div>
         </Grid>
@@ -361,7 +361,7 @@ const SignUp = props => {
                 />
                 <div className={classes.policy}>
                   <RadioGroup aria-label="position" name="position" value={value} onChange={handleChangeRadio} row>
-                  <FormControlLabel
+                    <FormControlLabel
                       value="teacher"
                       control={<Radio color="primary" />}
                       label="Professor"
