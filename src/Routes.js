@@ -35,7 +35,7 @@ const Routes = () => {
         component={UserListView}
         exact
         layout={MainLayout}
-        path="/users"
+        path="/students"
       />
       <RouteWithLayout
         component={ProductListView}

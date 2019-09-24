@@ -24,7 +24,7 @@ const useStyles = makeStyles(theme => ({
 
 const Main = props => {
   const { children } = props;
-  const { user } = children.props.history.location.state;
+  const user = JSON.parse(localStorage.getItem('user'));
 
   const classes = useStyles();
   const theme = useTheme();

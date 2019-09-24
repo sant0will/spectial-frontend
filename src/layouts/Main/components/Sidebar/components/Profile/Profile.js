@@ -29,7 +29,7 @@ const Profile = props => {
   const classes = useStyles();
 
   const user = {
-    name: u.user.name,
+    name: u.name,
     avatar: '/images/avatars/avatar_1.png',
     bio: u.role === 'teacher' ? "Professor" : "Aluno"
   };

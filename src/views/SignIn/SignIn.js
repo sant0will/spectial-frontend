@@ -182,7 +182,7 @@ const SignIn = props => {
       const { status, data } = res;
 
       if (status === 200) {
-        localStorage.setItem('auth-token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
 
         history.push("/dashboard", { user: data });
       }
